@@ -1,6 +1,6 @@
 import { db } from "../../index.js";
 import { User } from "../models/User.model.js";
-
+import Paytm  from "paytmchecksum";
 export const updateTransaction = async (req, res) => {
   const { senderEmail, amount, reciverEmail } = req.body;
 
@@ -77,6 +77,56 @@ export const updateBalance = async (req, res) => {
     return res.status(200).json({message:"Accepeted"})
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ message: "something went wrong" });
+  }
+};
+
+
+export const createPaytmChecksum = async (req, res) => {
+  console.log("adfjdafcyh")
+  const PaymentConfiguration = {
+    MID: "UqGrUm48056341225630",
+    Merchant_Key: "#WOxfmJ&9QK2sAk9",
+  }
+  const {  amount } = req.body;
+  if (!amount) {
+    let msg = " amount is required field !";
+    return res.status(406).json({ message: msg});
+  }
+  try {
+    let orderId = Math.floor(Math.random() *10000);
+    let paytmURL =
+      "https://securegw.paytm.in/theia/paytmCallback?ORDER_ID=" +
+      orderId +
+      "&TXN_AMOUNT=" +
+      amount +
+      "&WEBSITE=WEBSTAGING";
+   const body = {
+      MID: "UqGrUm48056341225630",
+      ORDER_ID: `${orderId}` ,
+      TXN_AMOUNT: `${amount}`,
+      CHANNEL_ID: "WAP",
+      INDUSTRY_TYPE_ID: "Retail",
+      WEBSITE: "WEBSTAGING",
+      CUST_ID: '123445',
+      CALLBACK_URL: paytmURL,
+    };
+    var paytmChecksum = Paytm.generateSignature(
+      body,
+      "#WOxfmJ&9QK2sAk9"
+    );
+    paytmChecksum
+      .then(async (result) => {
+        body["checksum"] = result;
+        return res.status(200).json({message:"Accepeted" , data:body});
+      })
+      .catch(function (err) {
+        console.log(err)
+        
+        return res.status(500).json({ message: "something went wrong from here" });
+      });
+    } catch (err) {
+    console.log(err)
     return res.status(500).json({ message: "something went wrong" });
   }
 };
