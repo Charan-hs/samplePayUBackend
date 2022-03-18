@@ -63,7 +63,7 @@ export const updateBalance = async (req, res) => {
     if (!foundUser) {
       return res.status(400).json({ message: "no user found" });
     }
-    const updatedAmount = foundUser.balance + amount;
+    const updatedAmount = parseInt(foundUser.balance) + parseInt(amount) ;
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
